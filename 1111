@@ -1,45 +1,45 @@
-  slli a2, a2, 3    # a2 = high
-  slli a3, a3, 3    # a3 = low
-  add a0, a0, a2    # s3 = pivot = arr[high]
-  ld s3, 0(a0)      
-  sub a0, a0,a2
+  partition:
+  slli a2, a2, 3    #size*8
+  add  t1, a0, a2   #t1 high address, pivot
+  ld   t2, 0(t1)    #t2 = arr[high] # t1=arr
 
-  addi a4, a3, 0    # a4 = i 
-  addi a5, a3, 0    # a5 = j 
+  li   t4, 0        #point = 0
+  li   t5, 0        #i=0
+ 
+for:
+  bge  t5, a2, exit  #i>=size then exit
+  add  a0, t5, a0    
+  ld   t3, 0(a0)
+  sub  a0, a0, t5    #t3 = arr[i]
   
-loop:
-  bge a5, a2, exit  # j >= high
-  add a0, a0, a5    # s4 = arr[j]
-  ld s4, 0(a0)      
-  sub a0, a0, a5
-  
-  bge s4, s3, else  # arr[j] >= pivot   
-  addi sp, sp, -8   # swag arr[i] arr[j]
+  bge  t3, t2, high  #t3>=pivot then high
+  addi sp, sp, -8    #swag arr[i] arr[point]
   sd ra,0(sp)
-  jal swag      
+  jal swap
   ld ra,0(sp)
   addi sp, sp, 8
-
-  addi a4, a4, 8    # i++
-else:
-  addi a5, a5, 8    # j++
-  j    loop
-
+  addi t4, t4, 8     #point=point+1
+high:
+  addi t5, t5, 8     #i=i+1
+  j    for
+ 
 exit:
-  addi a5, a2, 0    # j = high
-  addi sp, sp, -8   # swag arr[i] arr[high]
-  sd ra,0(sp)
-  jal swag      
-  ld ra,0(sp)
+  #add  t5, t5, a0
+  #lw   t3, 0(t5)    #t3 = arr[i]
+  addi  t5, a2, 0
+  addi sp, sp, -8   # swag arr[i] arr[point]
+  sd ra, 0(sp)
+  jal swap
+  ld ra, 0(sp)
   addi sp, sp, 8
   ret
 
-.global swag
-swag:
-  add a6, a0, a4
-  add a7, a0, a5
-  ld s5, 0(a6)
-  ld s6, 0(a7)   
-  sd s5, 0(a7)
-  sd s6, 0(a6)
+.global swap
+swap:
+  add  a7, a0, t4     #a7 = arr[point] address
+  add  a6, a0, t5     #a6 = arr[i] address
+  ld   a5, 0(a7)      #a6 = arr[point]
+  ld   a4, 0(a6)      #a4 = arr[i]
+  sd   a5, 0(a6)
+  sd   a4, 0(a7)
   jalr x0, 0(x1)
